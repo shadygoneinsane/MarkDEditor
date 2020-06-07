@@ -1,6 +1,7 @@
 package xute.markdeditor.components
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.Typeface
 import android.text.Editable
@@ -9,6 +10,7 @@ import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.OnFocusChangeListener
+import androidx.core.content.ContextCompat
 import xute.markdeditor.R
 import xute.markdeditor.models.ComponentTag
 import xute.markdeditor.models.TextComponentModel
@@ -18,6 +20,7 @@ import xute.markdeditor.utilities.FontSize
 class TextComponent(private val mContext: Context, private val textComponentCallback: TextComponentCallback?) {
     private val r: Resources by lazy { mContext.resources }
     private var spaceExist = false
+    private var defaultColorState: ColorStateList? = null
 
     /**
      * Method to create new instance according to mode provided.
@@ -91,17 +94,18 @@ class TextComponent(private val mContext: Context, private val textComponentCall
      */
     fun updateComponent(textComponentView: TextComponentView) {
         val componentTag = textComponentView.tag as ComponentTag
-        //get format type
-        val componentStyle = (componentTag.component as TextComponentModel).textStyle
-
-        when (componentStyle) {
+        //get style format type
+        when (val componentStyle = (componentTag.component as TextComponentModel).textStyle) {
             TextComponentStyle.FORMAT_NORMAL -> {
-                setNormalInput(textComponentView)
+                setNormalInput(textComponentView, componentStyle)
             }
 
             in TextComponentStyle.HEADING_H1..TextComponentStyle.HEADING_H5 -> {
-                textComponentView.inputBox.textSize = FontSize.getFontSize(componentStyle).toFloat()
                 textComponentView.apply {
+                    defaultColorState?.let {
+                        inputBox.setTextColor(it)
+                    }
+                    inputBox.textSize = FontSize.getFontSize(componentStyle).toFloat()
                     inputBox.setTypeface(null, Typeface.BOLD)
                     inputBox.setBackgroundResource(R.drawable.text_input_bg)
                     inputBox.setPadding(
@@ -116,6 +120,10 @@ class TextComponent(private val mContext: Context, private val textComponentCall
 
             TextComponentStyle.QUOTE_ITALIC -> {
                 textComponentView.apply {
+                    defaultColorState?.let {
+                        inputBox.setTextColor(it)
+                    }
+                    inputBox.textSize = FontSize.getFontSize(componentStyle).toFloat()
                     inputBox.setTypeface(null, Typeface.ITALIC)
                     inputBox.setBackgroundResource(R.drawable.blockquote_component_bg)
                     inputBox.setPadding(
@@ -128,28 +136,36 @@ class TextComponent(private val mContext: Context, private val textComponentCall
                 }
             }
 
-            /*TextComponentModel.QUOTE_H2_CENTER -> {
+            TextComponentStyle.QUOTE_H3_LIGHT -> {
                 textComponentView.apply {
-                    inputBox.setTypeface(null, Typeface.BOLD)
+                    defaultColorState = inputBox.textColors //save original colors
+                    inputBox.setTextColor(ContextCompat.getColor(mContext, R.color.disabled))
+
+                    inputBox.textSize = FontSize.getFontSize(TextComponentStyle.HEADING_H3).toFloat()
+                    inputBox.setTypeface(null, Typeface.NORMAL)
                     inputBox.setBackgroundResource(R.drawable.text_input_bg)
                     inputBox.setPadding(
-                            dpToPx(16), //left
-                            dpToPx(8),  //top
-                            dpToPx(16), //right
-                            dpToPx(8)   //bottom
+                            dpToPx(20), //left
+                            dpToPx(10),  //top
+                            dpToPx(20), //right
+                            dpToPx(10)   //bottom
                     )
                     inputBox.setLineSpacing(2f, 1.1f)
                 }
-            }*/
+            }
 
             else -> {
-                setNormalInput(textComponentView)
+                setNormalInput(textComponentView, componentStyle)
             }
         }
     }
 
-    private fun setNormalInput(view: TextComponentView) {
-        view.apply {
+    private fun setNormalInput(textComponentView: TextComponentView, @TextComponentStyle componentStyle: Int) {
+        textComponentView.apply {
+            defaultColorState?.let {
+                inputBox.setTextColor(it)
+            }
+            inputBox.textSize = FontSize.getFontSize(componentStyle).toFloat()
             inputBox.setTypeface(null, Typeface.NORMAL)
             inputBox.setBackgroundResource(R.drawable.text_input_bg)
             inputBox.setPadding(

@@ -2,13 +2,13 @@ package xute.markdeditor.styles
 
 import androidx.annotation.IntDef
 
-@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE, AnnotationTarget.LOCAL_VARIABLE)
 @IntDef(TextComponentStyle.FORMAT_NORMAL,
 
         TextComponentStyle.HEADING_H1, TextComponentStyle.HEADING_H2, TextComponentStyle.HEADING_H3,
         TextComponentStyle.HEADING_H4, TextComponentStyle.HEADING_H5,
 
-        TextComponentStyle.QUOTE_ITALIC, TextComponentStyle.QUOTE_H2_CENTER
+        TextComponentStyle.QUOTE_ITALIC, TextComponentStyle.QUOTE_H3_LIGHT
 )
 annotation class TextComponentStyle {
     companion object {
@@ -30,7 +30,7 @@ annotation class TextComponentStyle {
          * Format quote i.e normal, italic and spaced H2
          */
         const val QUOTE_ITALIC: Int = 6
-        const val QUOTE_H2_CENTER: Int = 7
+        const val QUOTE_H3_LIGHT: Int = 7
     }
 }
 
@@ -43,17 +43,17 @@ fun @TextComponentStyle Int.nextHeadingStyle(): @TextComponentStyle Int {
         TextComponentStyle.HEADING_H4 -> TextComponentStyle.HEADING_H5
         TextComponentStyle.HEADING_H5 -> TextComponentStyle.FORMAT_NORMAL
 
-        else -> TextComponentStyle.FORMAT_NORMAL
+        else -> TextComponentStyle.HEADING_H1
     }
 }
 
 fun @TextComponentStyle Int.nextBlockQuoteStyle(): @TextComponentStyle Int {
     return when (this) {
         TextComponentStyle.FORMAT_NORMAL -> TextComponentStyle.QUOTE_ITALIC
-        TextComponentStyle.QUOTE_ITALIC -> /*TextComponentStyle.QUOTE_H2_CENTER
-        TextComponentStyle.QUOTE_H2_CENTER ->*/ TextComponentStyle.FORMAT_NORMAL
+        TextComponentStyle.QUOTE_ITALIC -> TextComponentStyle.QUOTE_H3_LIGHT
+        TextComponentStyle.QUOTE_H3_LIGHT -> TextComponentStyle.FORMAT_NORMAL
 
-        else -> TextComponentStyle.FORMAT_NORMAL
+        else -> TextComponentStyle.QUOTE_ITALIC
     }
 }
 

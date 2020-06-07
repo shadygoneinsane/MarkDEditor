@@ -35,7 +35,7 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
 
     private var editorControlListener: EditorControlListener? = null
 
-    lateinit var viewBinding: EditorControlBarBinding
+    private lateinit var viewBinding: EditorControlBarBinding
 
     constructor(context: Context) : super(context) {
         init(context)
@@ -56,10 +56,8 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
         viewBinding.normalTextBtn.setTextColor(enabledColor)
 
         viewBinding.headingBtn.setImageResource(R.drawable.ic_h0)
-        viewBinding.headingBtn.setColorFilter(R.color.disabled)
 
         viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_0)
-        viewBinding.blockQuoteBtn.setColorFilter(R.color.disabled)
 
         viewBinding.headingTextBtn.setTextColor(disabledColor)
         viewBinding.headingNumberBtn.setTextColor(disabledColor)
@@ -126,41 +124,19 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
         }
 
         viewBinding.headingBtn.setOnClickListener {
-            onHeadingClick()
+            currentStyle = currentStyle.nextHeadingStyle()
+            handleStyleClick()
         }
 
         viewBinding.headingTextBtn.setOnClickListener {
-            onHeadingClick()
+            currentStyle = currentStyle.nextHeadingStyle()
+            handleStyleClick()
         }
 
-        //TODO: Would need revisiting !!
         viewBinding.blockQuoteBtn.setOnClickListener {
             currentStyle = currentStyle.nextBlockQuoteStyle()
 
-            when (currentStyle) {
-                TextComponentStyle.FORMAT_NORMAL -> {
-                    //switch to normal
-                    mEditor?.setHeading(componentStyle = TextComponentStyle.FORMAT_NORMAL)
-
-                    invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
-                            style = TextComponentStyle.FORMAT_NORMAL)
-                }
-                TextComponentStyle.QUOTE_ITALIC -> {
-                    //blockQuote
-                    mEditor?.changeToBlockQuote(TextComponentStyle.QUOTE_ITALIC)
-                    invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
-                            style = TextComponentStyle.FORMAT_NORMAL)
-                }
-
-                /*TextComponentStyle.QUOTE_CENTER_H2 -> {
-                    //blockQuote with H2 style
-                    mEditor?.setHeading(formatType = TextComponentStyle.FORMAT_HEADER,
-                            headingStyle = TextComponentStyle.HEADING_H2)
-                    invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
-                            formatType = TextComponentStyle.FORMAT_QUOTE,
-                            style = TextComponentStyle.HEADING_H2)
-                }*/
-            }
+            handleStyleClick()
         }
 
         viewBinding.bulletBtn.setOnClickListener {
@@ -192,14 +168,27 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
         viewBinding.insertImageBtn.setOnClickListener { editorControlListener?.onInsertImageClicked() }
     }
 
-    private fun onHeadingClick() {
-        currentStyle = currentStyle.nextHeadingStyle()
-
-        val formatType: Int
-        if (currentStyle == TextComponentStyle.FORMAT_NORMAL) {
-            mEditor?.setHeading(componentStyle = TextComponentStyle.FORMAT_NORMAL)
-        } else {
-            mEditor?.setHeading(componentStyle = currentStyle)
+    private fun handleStyleClick() {
+        when (currentStyle) {
+            TextComponentStyle.FORMAT_NORMAL -> {
+                //switch to normal
+                mEditor?.setHeading(componentStyle = TextComponentStyle.FORMAT_NORMAL)
+            }
+            TextComponentStyle.QUOTE_ITALIC -> {
+                //blockQuote
+                mEditor?.changeToBlockQuote(TextComponentStyle.QUOTE_ITALIC)
+            }
+            /*TextComponentStyle.QUOTE_CENTER_H2 -> {
+            //blockQuote with H2 style
+            mEditor?.setHeading(formatType = TextComponentStyle.FORMAT_HEADER,
+                   headingStyle = TextComponentStyle.HEADING_H2)
+            invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
+                   formatType = TextComponentStyle.FORMAT_QUOTE,
+                   style = TextComponentStyle.HEADING_H2)
+            }*/
+            else -> {
+                mEditor?.setHeading(componentStyle = currentStyle)
+            }
         }
         invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN, style = currentStyle)
     }
@@ -293,7 +282,7 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
                 viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_1)
             }
 
-            TextComponentStyle.QUOTE_H2_CENTER -> {
+            TextComponentStyle.QUOTE_H3_LIGHT -> {
                 //blockQuote with H2 style
                 viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_2)
             }

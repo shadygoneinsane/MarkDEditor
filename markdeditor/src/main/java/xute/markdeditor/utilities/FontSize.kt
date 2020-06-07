@@ -17,8 +17,8 @@ object FontSize {
             TextComponentStyle.HEADING_H3 -> H3_SIZE
             TextComponentStyle.HEADING_H4 -> H4_SIZE
             TextComponentStyle.HEADING_H5 -> H5_SIZE
-            TextComponentStyle.FORMAT_NORMAL -> NORMAL
-            else -> H5_SIZE
+            TextComponentStyle.QUOTE_H3_LIGHT -> H3_SIZE
+            else -> NORMAL
         }
     }
 }
