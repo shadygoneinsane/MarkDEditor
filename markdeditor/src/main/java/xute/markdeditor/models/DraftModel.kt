@@ -18,7 +18,6 @@ class DraftModel {
     @SerializedName("items")
     var items: ArrayList<DraftDataItemModel>? = null
 
-    constructor() {}
     constructor(items: ArrayList<DraftDataItemModel>?) {
         this.items = items
     }

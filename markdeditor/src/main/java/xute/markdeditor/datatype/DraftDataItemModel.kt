@@ -2,19 +2,21 @@ package xute.markdeditor.datatype
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import xute.markdeditor.styles.TextComponentStyle
+import xute.markdeditor.styles.TextModeType
 
 class DraftDataItemModel {
     @Expose
     @SerializedName("itemType")
-    var itemType = 0
+    var itemType = TextComponentStyle.FORMAT_NORMAL
 
     @Expose
     @SerializedName("mode")
-    var mode = 0
+    var mode = TextModeType.MODE_PLAIN
 
     @Expose
-    @SerializedName("type")
-    var textType = 0
+    @SerializedName("style")
+    var style = 0
 
     @Expose
     @SerializedName("content")
@@ -32,7 +34,7 @@ class DraftDataItemModel {
         return "DraftDataItemModel{" +
                 "itemType='" + itemType + '\'' +
                 ", mode=" + mode +
-                ", type=" + textType +
+                ", style=" + style +
                 ", content='" + content + '\'' +
                 ", downloadUrl='" + downloadUrl + '\'' +
                 ", caption='" + caption + '\'' +

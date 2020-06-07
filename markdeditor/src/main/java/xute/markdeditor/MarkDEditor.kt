@@ -2,8 +2,10 @@ package xute.markdeditor
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.annotation.Nullable
 import xute.markdeditor.components.*
 import xute.markdeditor.components.ImageComponentItem.ImageComponentListener
 import xute.markdeditor.components.TextComponent.TextComponentCallback
@@ -35,6 +37,11 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
 
     private var defaultHeadingStyle = TextComponentStyle.FORMAT_NORMAL
 
+    /**
+     * Input List Mode
+     */
+    private var currentInputMode = TextModeType.MODE_PLAIN
+
     private var isFreshEditor = false
     private var oldDraft: DraftModel? = null
 
@@ -43,7 +50,6 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         draftManager = DraftManager()
         bulletGroupModels = ArrayList()
         markDownConverter = MarkDownConverter()
-        //TODO : maybe it'll crash here !!
         setCurrentInputMode(TextModeType.MODE_PLAIN)
         __textComponent = TextComponent(context, this)
         __imageComponent = ImageComponent(context)
@@ -80,14 +86,14 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     }
 
     /**
-     * adds new TextComponent.
-     *
+     * adds new TextComponent (with pre-filled text - if exists)
+     * @param content to be added if its not null
      * @param insertIndex at which addition of new [TextComponent] take place.
      */
-    private fun addTextComponent(insertIndex: Int) {
+    public fun addTextComponent(insertIndex: Int, @Nullable content: String? = null) {
         __textComponent?.let { textComponent ->
             //setting default mode as plain
-            val textComponentItem = textComponent.newTextComponent(TextModeType.MODE_PLAIN)
+            val textComponentItem = textComponent.newTextComponent(currentInputMode)
             //prepare tag
             val textComponentModel = TextComponentModel()
             if (insertIndex == 0) {
@@ -98,30 +104,13 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
             val componentTag = getNewComponentTag(insertIndex)
             componentTag.component = textComponentModel
             textComponentItem.tag = componentTag
+
+            //if text exists add to view
+            content?.let {
+                textComponentItem.setText(it)
+            }
             addView(textComponentItem, insertIndex)
             textComponent.updateComponent(textComponentItem)
-            setFocus(textComponentItem)
-            reComputeTagsAfter(insertIndex)
-            refreshViewOrder()
-        }
-    }
-
-    /**
-     * adds new TextComponent with pre-filled text.
-     *
-     * @param insertIndex at which addition of new textcomponent take place.
-     */
-    fun addTextComponent(insertIndex: Int, content: String?) {
-        __textComponent?.let { textComponent ->
-            val textComponentItem = textComponent.newTextComponent(TextModeType.MODE_PLAIN)
-            //prepare tag
-            val textComponentModel = TextComponentModel()
-            val componentTag = getNewComponentTag(insertIndex)
-            componentTag.component = textComponentModel
-            textComponentItem.tag = componentTag
-            textComponentItem.setText(content)
-            addView(textComponentItem, insertIndex)
-            __textComponent?.updateComponent(textComponentItem)
             setFocus(textComponentItem)
             reComputeTagsAfter(insertIndex)
             refreshViewOrder()
@@ -140,6 +129,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
 
     fun setDataInView(@TextModeType textModeType: Int,
                       @TextComponentStyle componentStyle: Int) {
+        setCurrentInputMode(textModeType)
         (_activeView as? TextComponentView)?.let { textComponentItem ->
             //set mode as plain since we are defining it as a heading format type
             textComponentItem.setMode(textModeType)
@@ -156,12 +146,9 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         }
     }
 
-    fun setCurrentInputMode(@TextModeType textModeType: Int) {
-        (_activeView as? TextComponentView)?.let { textComponentItem ->
-            //set mode as plain since we are defining it as a heading format type
-            textComponentItem.setMode(textModeType)
-            __textComponent?.updateComponent(textComponentItem)
-        }
+    fun setCurrentInputMode(@TextModeType modeType: Int): Int {
+        currentInputMode = modeType
+        return currentInputMode
     }
 
     /**
@@ -170,7 +157,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     private fun setFocus(view: View) {
         _activeView = view
         (_activeView as? TextComponentView)?.let { textComponentItem ->
-            val currentInputListMode = textComponentItem.getMode()
+            setCurrentInputMode(textComponentItem.getMode())
             (view as? TextComponentView)?.inputBox?.requestFocus()
             reportStylesOfFocusedView(textComponentItem)
         }
@@ -182,17 +169,18 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * @param startIndex index after which re-computation will be done.
      */
     private fun reComputeTagsAfter(startIndex: Int) {
-        var _child: View
+        Log.d("vikesh", "Recomputing index")
         for (i in startIndex until childCount) {
-            _child = getChildAt(i)
-            val componentTag = _child.tag as ComponentTag
+            val child: View = getChildAt(i)
+            val componentTag = child.tag as ComponentTag
             componentTag.componentIndex = i
-            _child.tag = componentTag
+            child.tag = componentTag
+            Log.d("vikesh", "componentTag $componentTag")
         }
     }
 
     /**
-     * method to send callback for focussed view back to subscriber(if any).
+     * method to send callback for focused view back to subscriber(if any).
      *
      * @param view newly focus view.
      */
@@ -319,11 +307,8 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      */
     fun changeToBlockQuote(@TextModeType modeType: Int = TextModeType.MODE_PLAIN,
                            @TextComponentStyle componentStyle: Int = TextComponentStyle.QUOTE_ITALIC) {
-        //setCurrentInputType(formatType)
-        setCurrentInputMode(TextModeType.MODE_PLAIN)
-
         (_activeView as? TextComponentView)?.let { textComponentItem ->
-            textComponentItem.setMode(modeType)
+            textComponentItem.setMode(setCurrentInputMode(modeType))
             val componentTag = textComponentItem.tag as ComponentTag
             (componentTag.component as? TextComponentModel)?.textStyle = componentStyle
 
@@ -337,9 +322,8 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * Increasing numbers are used to denote each item.
      */
     fun changeToOLMode() {
-        val currentInputListMode = TextModeType.MODE_OL
         (_activeView as? TextComponentView)?.let { textComponentItem ->
-            textComponentItem.setMode(currentInputListMode)
+            textComponentItem.setMode(setCurrentInputMode(TextModeType.MODE_OL))
             val componentTag = textComponentItem.tag as ComponentTag
             (componentTag.component as? TextComponentModel)?.textStyle = TextComponentStyle.FORMAT_NORMAL
             __textComponent?.updateComponent(_activeView as TextComponentView)
@@ -352,9 +336,8 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * Circular filled bullets are used to denote each item.
      */
     fun changeToULMode() {
-        val currentInputListMode = TextModeType.MODE_UL
         (_activeView as? TextComponentView)?.let { textComponentItem ->
-            textComponentItem.setMode(currentInputListMode)
+            textComponentItem.setMode(setCurrentInputMode(TextModeType.MODE_UL))
             val componentTag = _activeView?.tag as ComponentTag
             (componentTag.component as TextComponentModel?)?.textStyle = TextComponentStyle.FORMAT_NORMAL
 
@@ -443,19 +426,31 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
 
     /**
      * Inserts new horizontal ruler.
+     * Adds new text components based on passed parameter.
      */
-    fun insertHorizontalDivider() {
+    fun insertHorizontalDivider(insertNewTextComponentAfterThis: Boolean? = null) {
         var insertIndex = nextIndex
-        val horizontalDividerComponentItem = __horizontalComponent!!.newHorizontalComponentItem
-        val _hrTag = getNewComponentTag(insertIndex)
-        horizontalDividerComponentItem.tag = _hrTag
-        addView(horizontalDividerComponentItem, insertIndex)
-        reComputeTagsAfter(insertIndex)
-        //add another text component below image
-        insertIndex++
-        setCurrentInputMode(TextModeType.MODE_PLAIN)
-        addTextComponent(insertIndex)
-        refreshViewOrder()
+        __horizontalComponent?.let { horizontalDividerComponent ->
+            val horizontalDividerComponentItem = horizontalDividerComponent.newHorizontalComponentItem()
+            val hrTag = getNewComponentTag(insertIndex)
+            horizontalDividerComponentItem.tag = hrTag
+            addView(horizontalDividerComponentItem, insertIndex)
+            reComputeTagsAfter(insertIndex)
+
+            //add another text component below image
+            insertIndex++
+            setCurrentInputMode(TextModeType.MODE_PLAIN)
+
+            insertNewTextComponentAfterThis?.let {
+                //add another text component below image
+                if (it) {
+                    addTextComponent(insertIndex)
+                } else {
+                    setFocus(horizontalDividerComponentItem)
+                }
+            } ?: addTextComponent(insertIndex)
+            refreshViewOrder()
+        }
     }
 
     /**
@@ -464,30 +459,8 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     private val nextIndex: Int
         get() {
             val tag = _activeView?.tag as ComponentTag
-            return tag.componentIndex + 1
+            return ++tag.componentIndex
         }
-
-    /**
-     * Inserts new horizontal ruler.
-     * Adds new text components based on passed parameter.
-     */
-    fun insertHorizontalDivider(insertNewTextComponentAfterThis: Boolean) {
-        var insertIndex = nextIndex
-        val horizontalDividerComponentItem = __horizontalComponent!!.newHorizontalComponentItem
-        val _hrTag = getNewComponentTag(insertIndex)
-        horizontalDividerComponentItem.tag = _hrTag
-        addView(horizontalDividerComponentItem, insertIndex)
-        reComputeTagsAfter(insertIndex)
-        //add another text component below image
-        if (insertNewTextComponentAfterThis) {
-            insertIndex++
-            setCurrentInputMode(TextModeType.MODE_PLAIN)
-            addTextComponent(insertIndex)
-        } else {
-            setFocus(horizontalDividerComponentItem)
-        }
-        refreshViewOrder()
-    }
 
     override fun onImageRemove(removeIndex: Int) {
         if (removeIndex == 0) {

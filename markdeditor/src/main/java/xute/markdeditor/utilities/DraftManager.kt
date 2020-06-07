@@ -68,7 +68,7 @@ class DraftManager {
         dataItemModel.itemType = DraftModel.ITEM_TYPE_TEXT
         dataItemModel.content = content
         dataItemModel.mode = TextModeType.MODE_PLAIN
-        dataItemModel.textType = componentStyle
+        dataItemModel.style = componentStyle
         return dataItemModel
     }
 
@@ -83,7 +83,7 @@ class DraftManager {
         dataItemModel.itemType = DraftModel.ITEM_TYPE_TEXT
         dataItemModel.content = content
         dataItemModel.mode = TextModeType.MODE_UL
-        dataItemModel.textType = TextComponentStyle.FORMAT_NORMAL
+        dataItemModel.style = TextComponentStyle.FORMAT_NORMAL
         return dataItemModel
     }
 
@@ -98,7 +98,7 @@ class DraftManager {
         dataItemModel.itemType = DraftModel.ITEM_TYPE_TEXT
         dataItemModel.content = content
         dataItemModel.mode = TextModeType.MODE_OL
-        dataItemModel.textType = TextComponentStyle.FORMAT_NORMAL
+        dataItemModel.style = TextComponentStyle.FORMAT_NORMAL
         return dataItemModel
     }
 

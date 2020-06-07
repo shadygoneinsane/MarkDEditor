@@ -1,5 +1,6 @@
 package xute.markdeditor.utilities
 
+import android.util.Log
 import xute.markdeditor.MarkDEditor
 import xute.markdeditor.datatype.DraftDataItemModel
 import xute.markdeditor.models.DraftModel
@@ -20,7 +21,7 @@ class RenderingUtils {
             if (item.itemType == DraftModel.ITEM_TYPE_TEXT) {
                 //identify mode of text item
                 when (item.mode) {
-                    //includes NORMAL, H1-H5, Blockquote
+                    //includes NORMAL, H1-H5, Quote
                     TextModeType.MODE_PLAIN -> renderPlainData(item)
 
                     //renders orderedList
@@ -47,7 +48,8 @@ class RenderingUtils {
      */
     private fun renderPlainData(item: DraftDataItemModel) {
         markDEditor?.setCurrentInputMode(TextModeType.MODE_PLAIN)
-        markDEditor?.setDataInView(TextModeType.MODE_PLAIN, item.textType)
+        markDEditor?.addTextComponent(insertIndex(), item.content)
+        markDEditor?.setHeading(item.style)
     }
 
     /**
@@ -91,6 +93,6 @@ class RenderingUtils {
      *
      * @return insert index.
      */
-    private fun insertIndex(): Int = markDEditor?.childCount!!
+    private fun insertIndex(): Int = markDEditor?.childCount!!.apply { Log.d("vikesh", "$this") }
 
 }
