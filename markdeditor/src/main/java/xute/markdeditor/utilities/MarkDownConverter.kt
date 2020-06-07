@@ -4,7 +4,7 @@ import android.view.View
 import xute.markdeditor.MarkDEditor
 import xute.markdeditor.components.HorizontalDividerComponentItem
 import xute.markdeditor.components.ImageComponentItem
-import xute.markdeditor.components.TextComponentItem
+import xute.markdeditor.components.TextComponentView
 import xute.markdeditor.models.ComponentTag
 import xute.markdeditor.models.TextComponentModel
 import xute.markdeditor.styles.TextModeType
@@ -31,14 +31,16 @@ class MarkDownConverter {
         var componentTag: ComponentTag
         for (i in 0 until childCount) {
             view = markDEditor.getChildAt(i)
-            if (view is TextComponentItem) {
+            if (view is TextComponentView) {
                 //check mode
                 val mode = view.getMode()
                 if (mode == TextModeType.MODE_PLAIN) {
-                    //check for styles {H1-H5 Blockquote Normal}
+                    //check for styles {Normal, heading = H1-H5 or for Quote}
                     componentTag = view.getTag() as ComponentTag
-                    textStyle = (componentTag.component as TextComponentModel?)!!.textFormatType
-                    stringBuilder.append(getTextFormat(textStyle, view.getContent()))
+                    (componentTag.component as? TextComponentModel)?.let { textComponentModel ->
+                        textStyle = textComponentModel.textStyle
+                        stringBuilder.append(getTextFormat(textStyle, view.getContent()))
+                    }
                 } else if (mode == TextModeType.MODE_UL) {
                     stringBuilder.append(getULFormat(view.getContent()))
                 } else if (mode == TextModeType.MODE_OL) {

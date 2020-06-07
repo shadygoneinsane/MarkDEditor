@@ -4,13 +4,12 @@ import android.view.View
 import xute.markdeditor.MarkDEditor
 import xute.markdeditor.components.HorizontalDividerComponentItem
 import xute.markdeditor.components.ImageComponentItem
-import xute.markdeditor.components.TextComponentItem
+import xute.markdeditor.components.TextComponentView
 import xute.markdeditor.datatype.DraftDataItemModel
 import xute.markdeditor.models.ComponentTag
 import xute.markdeditor.models.DraftModel
 import xute.markdeditor.models.TextComponentModel
-import xute.markdeditor.styles.TextFormatType
-import xute.markdeditor.styles.TextHeadingStyle
+import xute.markdeditor.styles.TextComponentStyle
 import xute.markdeditor.styles.TextModeType
 import java.util.*
 
@@ -25,22 +24,22 @@ class DraftManager {
         val drafts = ArrayList<DraftDataItemModel>()
         val childCount = markDEditor.childCount
         var view: View
-        @TextFormatType var textFormatType: Int
-        @TextFormatType var textHeadingStyle: Int
+
+        @TextComponentStyle var componentStyle: Int
+
         var componentTag: ComponentTag
         for (i in 0 until childCount) {
             view = markDEditor.getChildAt(i)
-            if (view is TextComponentItem) {
+            if (view is TextComponentView) {
                 //check mode
                 val mode = view.getMode()
                 if (mode == TextModeType.MODE_PLAIN) {
                     //check for styles {H1-H5, BlockQuote and Normal}
                     componentTag = view.getTag() as ComponentTag
                     (componentTag.component as? TextComponentModel)?.let { textComponentModel ->
-                        textFormatType = textComponentModel.textFormatType
-                        textHeadingStyle = textComponentModel.textHeadingStyle
+                        componentStyle = textComponentModel.textStyle
 
-                        drafts.add(getPlainModel(textFormatType, textHeadingStyle, view.getContent()))
+                        drafts.add(getPlainModel(componentStyle, view.getContent()))
                     }
                 } else if (mode == TextModeType.MODE_UL) {
                     drafts.add(getUlModel(view.getContent()))
@@ -50,10 +49,7 @@ class DraftManager {
             } else if (view is HorizontalDividerComponentItem) {
                 drafts.add(hRModel)
             } else if (view is ImageComponentItem) {
-                drafts.add(getImageModel(
-                        view.getDownloadUrl(),
-                        view.mCaption
-                ))
+                drafts.add(getImageModel(view.getDownloadUrl(), view.mCaption))
             }
         }
         return DraftModel(drafts)
@@ -63,17 +59,16 @@ class DraftManager {
      * Models Text information.
      *
      * @param textType  style associated with the text (NORMAL,H1-H5,BLOCKQUOTE)
-     * @param headingStyle style associated with the text (NORMAL,H1-H5,BLOCKQUOTE)
+     * @param componentStyle style associated with the text (NORMAL,H1-H5,BLOCKQUOTE)
      * @param content   text content
      * @return a Generic TextType Object containing information.
      */
-    private fun getPlainModel(@TextFormatType textType: Int, @TextFormatType headingStyle: Int, content: String): DraftDataItemModel {
+    private fun getPlainModel(@TextComponentStyle componentStyle: Int, content: String): DraftDataItemModel {
         val dataItemModel = DraftDataItemModel()
         dataItemModel.itemType = DraftModel.ITEM_TYPE_TEXT
         dataItemModel.content = content
         dataItemModel.mode = TextModeType.MODE_PLAIN
-        dataItemModel.textType = textType
-        dataItemModel.headingStyle = headingStyle
+        dataItemModel.textType = componentStyle
         return dataItemModel
     }
 
@@ -88,8 +83,7 @@ class DraftManager {
         dataItemModel.itemType = DraftModel.ITEM_TYPE_TEXT
         dataItemModel.content = content
         dataItemModel.mode = TextModeType.MODE_UL
-        dataItemModel.textType = TextFormatType.FORMAT_LIST
-        dataItemModel.textType = TextHeadingStyle.HEADING_NORMAL
+        dataItemModel.textType = TextComponentStyle.FORMAT_NORMAL
         return dataItemModel
     }
 
@@ -104,8 +98,7 @@ class DraftManager {
         dataItemModel.itemType = DraftModel.ITEM_TYPE_TEXT
         dataItemModel.content = content
         dataItemModel.mode = TextModeType.MODE_OL
-        dataItemModel.textType = TextFormatType.FORMAT_LIST
-        dataItemModel.textType = TextHeadingStyle.HEADING_NORMAL
+        dataItemModel.textType = TextComponentStyle.FORMAT_NORMAL
         return dataItemModel
     }
 
@@ -115,7 +108,7 @@ class DraftManager {
      * @return a HR type model object.
      */
     private val hRModel: DraftDataItemModel
-        private get() {
+        get() {
             val hrType = DraftDataItemModel()
             hrType.itemType = DraftModel.ITEM_TYPE_HR
             return hrType

@@ -11,9 +11,7 @@ import xute.markdeditor.models.ComponentTag
 import xute.markdeditor.models.DraftModel
 import xute.markdeditor.models.ImageComponentModel
 import xute.markdeditor.models.TextComponentModel
-import xute.markdeditor.styles.BlockQuoteStyle
-import xute.markdeditor.styles.TextFormatType
-import xute.markdeditor.styles.TextHeadingStyle
+import xute.markdeditor.styles.TextComponentStyle
 import xute.markdeditor.styles.TextModeType
 import xute.markdeditor.utilities.ComponentMetadataHelper.getNewComponentTag
 import xute.markdeditor.utilities.DraftManager
@@ -35,7 +33,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     private var editorFocusReporter: EditorFocusReporter? = null
     private var startHintText: String? = null
 
-    private var defaultHeadingStyle = TextHeadingStyle.HEADING_NORMAL
+    private var defaultHeadingStyle = TextComponentStyle.FORMAT_NORMAL
 
     private var isFreshEditor = false
     private var oldDraft: DraftModel? = null
@@ -78,7 +76,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         //starts basic editor with single text component.
         isFreshEditor = true
         addTextComponent(0)
-        setHeading(formatType = TextFormatType.FORMAT_HEADER, headingStyle = defaultHeadingStyle)
+        setHeading(componentStyle = TextComponentStyle.FORMAT_NORMAL)
     }
 
     /**
@@ -133,17 +131,16 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     /**
      * sets heading to text component
      *
-     * @param headingStyle number to be set
+     * @param componentStyle number to be set
      */
-    fun setHeading(@TextFormatType formatType: Int = TextFormatType.FORMAT_NORMAL, @TextHeadingStyle headingStyle: Int) {
-        setDataInView(TextModeType.MODE_PLAIN, formatType, headingStyle)
+    fun setHeading(@TextComponentStyle componentStyle: Int) {
+        setDataInView(TextModeType.MODE_PLAIN, componentStyle)
         refreshViewOrder()
     }
 
     fun setDataInView(@TextModeType textModeType: Int,
-                      @TextFormatType formatType: Int,
-                      @TextHeadingStyle headingStyle: Int? = null) {
-        (_activeView as? TextComponentItem)?.let { textComponentItem ->
+                      @TextComponentStyle componentStyle: Int) {
+        (_activeView as? TextComponentView)?.let { textComponentItem ->
             //set mode as plain since we are defining it as a heading format type
             textComponentItem.setMode(textModeType)
 
@@ -152,10 +149,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
                 (componentTag.component as? TextComponentModel)?.let { textComponentModel ->
 
                     //set data in model
-                    textComponentModel.textFormatType = formatType
-                    headingStyle?.let { heading ->
-                        textComponentModel.textHeadingStyle = heading
-                    }
+                    textComponentModel.textStyle = componentStyle
                 }
             }
             __textComponent?.updateComponent(textComponentItem)
@@ -163,7 +157,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     }
 
     fun setCurrentInputMode(@TextModeType textModeType: Int) {
-        (_activeView as? TextComponentItem)?.let { textComponentItem ->
+        (_activeView as? TextComponentView)?.let { textComponentItem ->
             //set mode as plain since we are defining it as a heading format type
             textComponentItem.setMode(textModeType)
             __textComponent?.updateComponent(textComponentItem)
@@ -175,9 +169,9 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      */
     private fun setFocus(view: View) {
         _activeView = view
-        (_activeView as? TextComponentItem)?.let { textComponentItem ->
+        (_activeView as? TextComponentView)?.let { textComponentItem ->
             val currentInputListMode = textComponentItem.getMode()
-            (view as? TextComponentItem)?.inputBox?.requestFocus()
+            (view as? TextComponentView)?.inputBox?.requestFocus()
             reportStylesOfFocusedView(textComponentItem)
         }
     }
@@ -202,9 +196,9 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      *
      * @param view newly focus view.
      */
-    private fun reportStylesOfFocusedView(view: TextComponentItem) {
+    private fun reportStylesOfFocusedView(view: TextComponentView) {
         if (editorFocusReporter != null) {
-            editorFocusReporter?.onFocusedViewHas(view.getMode(), view.getTextFormatType(), view.getTextHeadingStyle())
+            editorFocusReporter?.onFocusedViewHas(view.getMode(), view.getTextComponentStyle())
         }
     }
 
@@ -243,7 +237,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         if (selfIndex == 0) return
         val viewToBeRemoved = getChildAt(selfIndex)
         val previousView = getChildAt(selfIndex - 1)
-        val content = (viewToBeRemoved as TextComponentItem).inputBox.text.toString()
+        val content = (viewToBeRemoved as TextComponentView).inputBox.text.toString()
         if (previousView is HorizontalDividerComponentItem) {
             //remove previous view.
             removeViewAt(selfIndex - 1)
@@ -251,7 +245,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
             //focus on latest text component
             val lastTextComponent = getLatestTextComponentIndexBefore(selfIndex - 1)
             setFocus(getChildAt(lastTextComponent))
-        } else if (previousView is TextComponentItem) {
+        } else if (previousView is TextComponentView) {
             removeViewAt(selfIndex)
             val contentLen = previousView.inputBox.text.toString().length
             previousView.inputBox.append(String.format("%s", content))
@@ -275,7 +269,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         var view: View? = null
         for (i in starIndex downTo 0) {
             view = getChildAt(i)
-            if (view is TextComponentItem) return i
+            if (view is TextComponentView) return i
         }
         return 0
     }
@@ -288,7 +282,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     private fun setFocus(view: View, cursorPos: Int) {
         _activeView = view
         view.requestFocus()
-        if (view is TextComponentItem) {
+        if (view is TextComponentView) {
             val mgr = mContext?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             mgr.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
             //move cursor
@@ -308,7 +302,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * @param url  linking url.
      */
     fun addLink(text: String?, url: String?) {
-        if (_activeView is TextComponentItem) {
+        if (_activeView is TextComponentView) {
             val stringBuilder = StringBuilder()
             stringBuilder
                     .append(" <a href=\"")
@@ -316,24 +310,24 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
                     .append("\">")
                     .append(text)
                     .append("</a> ")
-            (_activeView as TextComponentItem).inputBox.append(stringBuilder.toString())
+            (_activeView as? TextComponentView)?.inputBox?.append(stringBuilder.toString())
         }
     }
 
     /**
      * changes the current text into block quote.
      */
-    fun changeToBlockQuote(@BlockQuoteStyle blockQuoteStyle: Int,
-                           @TextFormatType formatType: Int = TextFormatType.FORMAT_QUOTE,
-                           @TextModeType modeType: Int = TextModeType.MODE_PLAIN) {
+    fun changeToBlockQuote(@TextModeType modeType: Int = TextModeType.MODE_PLAIN,
+                           @TextComponentStyle componentStyle: Int = TextComponentStyle.QUOTE_ITALIC) {
         //setCurrentInputType(formatType)
         setCurrentInputMode(TextModeType.MODE_PLAIN)
 
-        if (_activeView is TextComponentItem) {
-            (_activeView as TextComponentItem).setMode(modeType)
-            val componentTag = (_activeView as TextComponentItem).tag as ComponentTag
-            (componentTag.component as? TextComponentModel)?.textFormatType = TextFormatType.FORMAT_QUOTE
-            __textComponent!!.updateComponent(_activeView as TextComponentItem)
+        (_activeView as? TextComponentView)?.let { textComponentItem ->
+            textComponentItem.setMode(modeType)
+            val componentTag = textComponentItem.tag as ComponentTag
+            (componentTag.component as? TextComponentModel)?.textStyle = componentStyle
+
+            __textComponent?.updateComponent(textComponentItem)
         }
         refreshViewOrder()
     }
@@ -344,11 +338,11 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      */
     fun changeToOLMode() {
         val currentInputListMode = TextModeType.MODE_OL
-        (_activeView as? TextComponentItem)?.let { textComponentItem ->
+        (_activeView as? TextComponentView)?.let { textComponentItem ->
             textComponentItem.setMode(currentInputListMode)
             val componentTag = textComponentItem.tag as ComponentTag
-            (componentTag.component as? TextComponentModel)?.textFormatType = TextFormatType.FORMAT_NORMAL
-            __textComponent?.updateComponent(_activeView as TextComponentItem)
+            (componentTag.component as? TextComponentModel)?.textStyle = TextComponentStyle.FORMAT_NORMAL
+            __textComponent?.updateComponent(_activeView as TextComponentView)
         }
         refreshViewOrder()
     }
@@ -359,11 +353,12 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      */
     fun changeToULMode() {
         val currentInputListMode = TextModeType.MODE_UL
-        if (_activeView is TextComponentItem) {
-            (_activeView as TextComponentItem).setMode(currentInputListMode)
+        (_activeView as? TextComponentView)?.let { textComponentItem ->
+            textComponentItem.setMode(currentInputListMode)
             val componentTag = _activeView?.tag as ComponentTag
-            (componentTag.component as TextComponentModel?)?.textFormatType = TextFormatType.FORMAT_NORMAL
-            __textComponent?.updateComponent(_activeView as TextComponentItem)
+            (componentTag.component as TextComponentModel?)?.textStyle = TextComponentStyle.FORMAT_NORMAL
+
+            __textComponent?.updateComponent(textComponentItem)
         }
         refreshViewOrder()
     }
@@ -377,15 +372,15 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      *
      * @param filePath uri of image to be inserted.
      */
-    fun insertImage(filePath: String?) {
+    fun insertImage(filePath: String) {
         var insertIndex = checkInvalidateAndCalculateInsertIndex()
-        val imageComponentItem = __imageComponent!!.getNewImageComponentItem(this)
+        val imageComponentItem = __imageComponent?.getNewImageComponentItem(this)
         //prepare tag
         val imageComponentModel = ImageComponentModel()
         val imageComponentTag = getNewComponentTag(insertIndex)
         imageComponentTag.component = imageComponentModel
-        imageComponentItem.tag = imageComponentTag
-        imageComponentItem.setImageInformation(filePath!!, serverToken, false, "")
+        imageComponentItem?.tag = imageComponentTag
+        imageComponentItem?.setImageInformation(filePath, serverToken, false, "")
         addView(imageComponentItem, insertIndex)
         reComputeTagsAfter(insertIndex)
         refreshViewOrder()
@@ -410,7 +405,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         val activeIndex = tag.componentIndex
         val view = getChildAt(activeIndex)
         //check for TextComponentItem
-        return if (view is TextComponentItem) {
+        return if (view is TextComponentView) {
             //if active text component has some texts.
             if (view.inputBox.text.isNotEmpty()) {
                 //insert below it
@@ -554,7 +549,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     }
 
     interface EditorFocusReporter {
-        fun onFocusedViewHas(@TextModeType mode: Int, @TextFormatType textFormatType: Int, @TextHeadingStyle textComponentStyle: Int)
+        fun onFocusedViewHas(@TextModeType mode: Int, @TextComponentStyle textComponentStyle: Int)
     }
 
     companion object {

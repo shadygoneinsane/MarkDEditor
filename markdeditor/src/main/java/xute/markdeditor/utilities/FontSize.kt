@@ -1,6 +1,6 @@
 package xute.markdeditor.utilities
 
-import xute.markdeditor.styles.TextHeadingStyle
+import xute.markdeditor.styles.TextComponentStyle
 
 object FontSize {
     private const val H1_SIZE = 32
@@ -10,14 +10,14 @@ object FontSize {
     private const val H5_SIZE = 20
     private const val NORMAL = 20
 
-    fun getFontSize(@TextHeadingStyle heading: Int): Int {
+    fun getFontSize(@TextComponentStyle heading: Int): Int {
         return when (heading) {
-            TextHeadingStyle.HEADING_H1 -> H1_SIZE
-            TextHeadingStyle.HEADING_H2 -> H2_SIZE
-            TextHeadingStyle.HEADING_H3 -> H3_SIZE
-            TextHeadingStyle.HEADING_H4 -> H4_SIZE
-            TextHeadingStyle.HEADING_H5 -> H5_SIZE
-            TextHeadingStyle.HEADING_NORMAL -> NORMAL
+            TextComponentStyle.HEADING_H1 -> H1_SIZE
+            TextComponentStyle.HEADING_H2 -> H2_SIZE
+            TextComponentStyle.HEADING_H3 -> H3_SIZE
+            TextComponentStyle.HEADING_H4 -> H4_SIZE
+            TextComponentStyle.HEADING_H5 -> H5_SIZE
+            TextComponentStyle.FORMAT_NORMAL -> NORMAL
             else -> H5_SIZE
         }
     }

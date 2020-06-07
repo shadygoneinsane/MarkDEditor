@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
-import xute.markdeditor.components.TextComponentItem
+import xute.markdeditor.components.TextComponentView
 import xute.markdeditor.models.BulletGroupModel
 import xute.markdeditor.styles.TextModeType
 import java.util.*
@@ -51,14 +51,14 @@ open class MarkDCore(context: Context?, attrs: AttributeSet?) : LinearLayout(con
         while (i < childCount) {
             child = getChildAt(i)
             //skip non-text component items
-            if (child is TextComponentItem) {
+            if (child is TextComponentView) {
                 if (child.getMode() == TextModeType.MODE_OL) {
                     startIndex = i
                     //search end of this group
                     for (j in i until childCount) {
                         i = j
                         child = getChildAt(j)
-                        endIndex = if (child is TextComponentItem) {
+                        endIndex = if (child is TextComponentView) {
                             if (child.getMode() == TextModeType.MODE_OL) {
                                 i
                             } else {
@@ -91,7 +91,7 @@ open class MarkDCore(context: Context?, attrs: AttributeSet?) : LinearLayout(con
         var ot: Int
         var si: Int
         var ei: Int
-        var _tempChild: TextComponentItem
+        var _tempChild: TextComponentView
         //loop through each group
         for (i in bulletGroupModels.indices) {
             ot = bulletGroupModels[i].orderType
@@ -102,7 +102,7 @@ open class MarkDCore(context: Context?, attrs: AttributeSet?) : LinearLayout(con
                 var ci = 1
                 for (j in si..ei) {
                     try {
-                        _tempChild = getChildAt(j) as TextComponentItem
+                        _tempChild = getChildAt(j) as TextComponentView
                         _tempChild.setMode(TextModeType.MODE_OL)
                         _tempChild.setIndicator("$ci.")
                         ci++

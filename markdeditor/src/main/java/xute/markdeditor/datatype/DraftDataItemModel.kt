@@ -17,10 +17,6 @@ class DraftDataItemModel {
     var textType = 0
 
     @Expose
-    @SerializedName("headingStyle")
-    var headingStyle = 0
-
-    @Expose
     @SerializedName("content")
     var content: String? = null
 

@@ -21,8 +21,7 @@ import xute.markdeditor.MarkDEditor;
 import xute.markdeditor.controller.EditorControlBar;
 import xute.markdeditor.datatype.DraftDataItemModel;
 import xute.markdeditor.models.DraftModel;
-import xute.markdeditor.styles.TextFormatType;
-import xute.markdeditor.styles.TextHeadingStyle;
+import xute.markdeditor.styles.TextComponentStyle;
 import xute.markdeditor.styles.TextModeType;
 import xute.markdeditor.utilities.FilePathUtils;
 
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements EditorControlBar.
                 "",
                 true,
                 "Start Here...",
-                TextFormatType.FORMAT_NORMAL
+                TextComponentStyle.FORMAT_NORMAL
         );
         markDEditor.loadDraft(getDraftContent());
         editorControlBar = findViewById(R.id.controlBar);
@@ -58,22 +57,19 @@ public class MainActivity extends AppCompatActivity implements EditorControlBar.
         heading.setItemType(DraftModel.ITEM_TYPE_TEXT);
         heading.setContent("Kajal Aggarwal filmography");
         heading.setMode(TextModeType.MODE_PLAIN);
-        heading.setTextType(TextFormatType.FORMAT_HEADER);
-        heading.setHeadingStyle(TextHeadingStyle.HEADING_H1);
+        heading.setTextType(TextComponentStyle.HEADING_H1);
 
         DraftDataItemModel sub_heading = new DraftDataItemModel();
         sub_heading.setItemType(DraftModel.ITEM_TYPE_TEXT);
         sub_heading.setContent("Nominated");
         sub_heading.setMode(MODE_PLAIN);
-        sub_heading.setTextType(TextFormatType.FORMAT_HEADER);
-        sub_heading.setHeadingStyle(TextHeadingStyle.HEADING_H3);
+        sub_heading.setTextType(TextComponentStyle.HEADING_H3);
 
         DraftDataItemModel bl = new DraftDataItemModel();
         bl.setItemType(DraftModel.ITEM_TYPE_TEXT);
         bl.setContent("A super star of south movies!");
         bl.setMode(MODE_PLAIN);
-        bl.setTextType(TextFormatType.FORMAT_QUOTE);
-        bl.setTextType(TextFormatType.FORMAT_QUOTE);
+        bl.setTextType(TextComponentStyle.QUOTE_ITALIC);
 
         DraftDataItemModel body = new DraftDataItemModel();
         body.setItemType(DraftModel.ITEM_TYPE_TEXT);
@@ -81,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements EditorControlBar.
                 "Kajal Aggarwal in March 2017\n" +
                 "Kajal Aggarwal is an Indian actress who appears in primarily in Tamil and Telugu films.[1] She made her acting debut with a minor role in the Hindi film Kyun! Ho Gaya Na..., a box office failure. She later signed up P. Bharathiraja's Tamil film Bommalattam, which was to have been her first film in that language, but it was delayed.");
         body.setMode(MODE_PLAIN);
-        body.setTextType(TextFormatType.FORMAT_NORMAL);
+        body.setTextType(TextComponentStyle.FORMAT_NORMAL);
 
         DraftDataItemModel hrType = new DraftDataItemModel();
         hrType.setItemType(DraftModel.ITEM_TYPE_HR);
@@ -93,13 +89,13 @@ public class MainActivity extends AppCompatActivity implements EditorControlBar.
 
         DraftDataItemModel filmsList1 = new DraftDataItemModel();
         filmsList1.setItemType(DraftModel.ITEM_TYPE_TEXT);
-        filmsList1.setTextType(TextFormatType.FORMAT_NORMAL);
+        filmsList1.setTextType(TextComponentStyle.FORMAT_NORMAL);
         filmsList1.setMode(MODE_OL);
         filmsList1.setContent("2009 – Filmfare Award for Best Actress – Telugu for Magadheera");
 
         DraftDataItemModel filmsList2 = new DraftDataItemModel();
         filmsList2.setItemType(DraftModel.ITEM_TYPE_TEXT);
-        filmsList2.setTextType(TextFormatType.FORMAT_NORMAL);
+        filmsList2.setTextType(TextComponentStyle.FORMAT_NORMAL);
         filmsList2.setMode(MODE_OL);
         filmsList2.setContent("2010 – Filmfare Award for Best Actress – Telugu for Darling");
         contentTypes.add(heading);

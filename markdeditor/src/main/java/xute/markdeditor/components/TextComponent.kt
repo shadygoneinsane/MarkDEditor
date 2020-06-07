@@ -12,9 +12,7 @@ import android.view.View.OnFocusChangeListener
 import xute.markdeditor.R
 import xute.markdeditor.models.ComponentTag
 import xute.markdeditor.models.TextComponentModel
-import xute.markdeditor.styles.BlockQuoteStyle
-import xute.markdeditor.styles.TextFormatType
-import xute.markdeditor.styles.TextHeadingStyle
+import xute.markdeditor.styles.TextComponentStyle
 import xute.markdeditor.utilities.FontSize
 
 class TextComponent(private val mContext: Context, private val textComponentCallback: TextComponentCallback?) {
@@ -27,8 +25,8 @@ class TextComponent(private val mContext: Context, private val textComponentCall
      * @param mode mode of new TextComponent.
      * @return new instance of TextComponent.
      */
-    fun newTextComponent(mode: Int): TextComponentItem {
-        val customInput = TextComponentItem(mContext, mode)
+    fun newTextComponent(mode: Int): TextComponentView {
+        val customInput = TextComponentView(mContext, mode)
         val et = customInput.inputBox
         et.setImeActionLabel("Enter", KeyEvent.KEYCODE_ENTER)
         et.setOnKeyListener(View.OnKeyListener { view, keyCode, keyEvent ->
@@ -89,90 +87,68 @@ class TextComponent(private val mContext: Context, private val textComponentCall
 
     /**
      * updates view with latest style info.
-     * @param view to be updated.
+     * @param textComponentView to be updated.
      */
-    fun updateComponent(view: View) {
-        val componentTag = view.tag as ComponentTag
+    fun updateComponent(textComponentView: TextComponentView) {
+        val componentTag = textComponentView.tag as ComponentTag
         //get format type
-        val formatType = (componentTag.component as TextComponentModel).textFormatType
+        val componentStyle = (componentTag.component as TextComponentModel).textStyle
 
-        val textComponentItem = view as TextComponentItem
-        textComponentItem.inputBox.textSize = FontSize.getFontSize(formatType).toFloat()
-        when (formatType) {
-            TextFormatType.FORMAT_HEADER -> {
-                //get format heading
-                val formatHeading = (componentTag.component as TextComponentModel).textHeadingStyle
-
-                if (formatHeading >= TextHeadingStyle.HEADING_H1 && formatHeading <= TextHeadingStyle.HEADING_H5) {
-                    view.apply {
-                        inputBox.setTypeface(null, Typeface.BOLD)
-                        inputBox.setBackgroundResource(R.drawable.text_input_bg)
-                        inputBox.setPadding(
-                                dpToPx(16), //left
-                                dpToPx(8),  //top
-                                dpToPx(16), //right
-                                dpToPx(8)   //bottom
-                        )
-                        inputBox.setLineSpacing(2f, 1.1f)
-                    }
-                }
+        when (componentStyle) {
+            TextComponentStyle.FORMAT_NORMAL -> {
+                setNormalInput(textComponentView)
             }
 
-            TextFormatType.FORMAT_NORMAL -> {
-                setNormalInput(view)
-            }
-
-            TextFormatType.FORMAT_LIST -> {
-                view.apply {
+            in TextComponentStyle.HEADING_H1..TextComponentStyle.HEADING_H5 -> {
+                textComponentView.inputBox.textSize = FontSize.getFontSize(componentStyle).toFloat()
+                textComponentView.apply {
+                    inputBox.setTypeface(null, Typeface.BOLD)
+                    inputBox.setBackgroundResource(R.drawable.text_input_bg)
                     inputBox.setPadding(
-                            dpToPx(4),  //left
-                            dpToPx(4),  //top
+                            dpToPx(16), //left
+                            dpToPx(8),  //top
                             dpToPx(16), //right
-                            dpToPx(4)   //bottom
+                            dpToPx(8)   //bottom
                     )
                     inputBox.setLineSpacing(2f, 1.1f)
                 }
             }
 
-            TextFormatType.FORMAT_QUOTE -> {
-                //get format heading
-                when ((componentTag.component as TextComponentModel).blockQuoteStyle) {
-                    BlockQuoteStyle.QUOTE_ITALIC -> {
-                        view.apply {
-                            inputBox.setTypeface(null, Typeface.ITALIC)
-                            inputBox.setBackgroundResource(R.drawable.blockquote_component_bg)
-                            inputBox.setPadding(
-                                    dpToPx(16), //left
-                                    dpToPx(2),  //top
-                                    dpToPx(16), //right
-                                    dpToPx(2)   //bottom
-                            )
-                            inputBox.setLineSpacing(2f, 1.2f)
-                        }
-                    }
-                    BlockQuoteStyle.QUOTE_CENTER_H2 -> {
-                        view.apply {
-                            inputBox.setTypeface(null, Typeface.BOLD)
-                            inputBox.setBackgroundResource(R.drawable.text_input_bg)
-                            inputBox.setPadding(
-                                    dpToPx(16), //left
-                                    dpToPx(8),  //top
-                                    dpToPx(16), //right
-                                    dpToPx(8)   //bottom
-                            )
-                            inputBox.setLineSpacing(2f, 1.1f)
-                        }
-                    }
-                    else -> {
-                        setNormalInput(view)
-                    }
+            TextComponentStyle.QUOTE_ITALIC -> {
+                textComponentView.apply {
+                    inputBox.setTypeface(null, Typeface.ITALIC)
+                    inputBox.setBackgroundResource(R.drawable.blockquote_component_bg)
+                    inputBox.setPadding(
+                            dpToPx(16), //left
+                            dpToPx(2),  //top
+                            dpToPx(16), //right
+                            dpToPx(2)   //bottom
+                    )
+                    inputBox.setLineSpacing(2f, 1.2f)
                 }
+            }
 
+            /*TextComponentModel.QUOTE_H2_CENTER -> {
+                textComponentView.apply {
+                    inputBox.setTypeface(null, Typeface.BOLD)
+                    inputBox.setBackgroundResource(R.drawable.text_input_bg)
+                    inputBox.setPadding(
+                            dpToPx(16), //left
+                            dpToPx(8),  //top
+                            dpToPx(16), //right
+                            dpToPx(8)   //bottom
+                    )
+                    inputBox.setLineSpacing(2f, 1.1f)
+                }
+            }*/
+
+            else -> {
+                setNormalInput(textComponentView)
             }
         }
     }
 
-    private fun setNormalInput(view: TextComponentItem) {
+    private fun setNormalInput(view: TextComponentView) {
         view.apply {
             inputBox.setTypeface(null, Typeface.NORMAL)
             inputBox.setBackgroundResource(R.drawable.text_input_bg)

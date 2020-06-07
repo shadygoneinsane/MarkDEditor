@@ -20,14 +20,17 @@ class RenderingUtils {
             if (item.itemType == DraftModel.ITEM_TYPE_TEXT) {
                 //identify mode of text item
                 when (item.mode) {
-                    TextModeType.MODE_PLAIN ->                         //includes NORMAL, H1-H5, Blockquote
-                        renderPlainData(item)
-                    TextModeType.MODE_OL ->                         //renders orderedList
-                        renderOrderedList(item)
-                    TextModeType.MODE_UL ->                         //renders unorderedList
-                        renderUnOrderedList(item)
-                    else ->                         //default goes to normal text
-                        renderPlainData(item)
+                    //includes NORMAL, H1-H5, Blockquote
+                    TextModeType.MODE_PLAIN -> renderPlainData(item)
+
+                    //renders orderedList
+                    TextModeType.MODE_OL -> renderOrderedList(item)
+
+                    //renders unorderedList
+                    TextModeType.MODE_UL -> renderUnOrderedList(item)
+
+                    //default goes to normal text
+                    else -> renderPlainData(item)
                 }
             } else if (item.itemType == DraftModel.ITEM_TYPE_HR) {
                 renderHR()
@@ -44,7 +47,7 @@ class RenderingUtils {
      */
     private fun renderPlainData(item: DraftDataItemModel) {
         markDEditor?.setCurrentInputMode(TextModeType.MODE_PLAIN)
-        markDEditor?.setDataInView(TextModeType.MODE_PLAIN, item.textType, item.headingStyle)
+        markDEditor?.setDataInView(TextModeType.MODE_PLAIN, item.textType)
     }
 
     /**

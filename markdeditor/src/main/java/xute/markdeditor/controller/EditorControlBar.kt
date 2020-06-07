@@ -20,21 +20,18 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
     private var disabledColor = 0
     private var customBackgroundColor = 0
 
-    @TextHeadingStyle
-    private var currentHeadingStyle = TextHeadingStyle.HEADING_NORMAL
+    @TextComponentStyle
+    private var currentStyle = TextComponentStyle.FORMAT_NORMAL
 
     /**
      * For defining how many headings the user wants
      * the format is same as ModelComponentStyle
      * default is H5
      */
-    private var maxHeading = TextHeadingStyle.HEADING_H5
+    private var maxHeading = TextComponentStyle.HEADING_H5
 
     private var olEnabled = false
     private var ulEnabled = false
-
-    @BlockQuoteStyle
-    private var blockQuoteStyle = BlockQuoteStyle.QUOTE_NORMAL
 
     private var editorControlListener: EditorControlListener? = null
 
@@ -124,10 +121,8 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
 
     private fun attachListeners() {
         viewBinding.normalTextBtn.setOnClickListener {
-            mEditor?.setHeading(formatType = TextFormatType.FORMAT_NORMAL, headingStyle = TextHeadingStyle.HEADING_NORMAL)
-            invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
-                    formatType = TextFormatType.FORMAT_NORMAL,
-                    textHeadingStyle = TextHeadingStyle.HEADING_NORMAL)
+            mEditor?.setHeading(componentStyle = TextComponentStyle.FORMAT_NORMAL)
+            invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN, style = TextComponentStyle.FORMAT_NORMAL)
         }
 
         viewBinding.headingBtn.setOnClickListener {
@@ -140,54 +135,51 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
 
         //TODO: Would need revisiting !!
         viewBinding.blockQuoteBtn.setOnClickListener {
-            blockQuoteStyle = blockQuoteStyle.nextBlockQuoteStyle()
+            currentStyle = currentStyle.nextBlockQuoteStyle()
 
-            when (blockQuoteStyle) {
-                BlockQuoteStyle.QUOTE_NORMAL -> {
+            when (currentStyle) {
+                TextComponentStyle.FORMAT_NORMAL -> {
                     //switch to normal
-                    mEditor?.setHeading(headingStyle = TextHeadingStyle.HEADING_NORMAL,
-                            formatType = TextFormatType.FORMAT_HEADER)
+                    mEditor?.setHeading(componentStyle = TextComponentStyle.FORMAT_NORMAL)
 
                     invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
-                            formatType = TextFormatType.FORMAT_NORMAL,
-                            textHeadingStyle = TextHeadingStyle.HEADING_NORMAL)
+                            style = TextComponentStyle.FORMAT_NORMAL)
                 }
-                BlockQuoteStyle.QUOTE_ITALIC -> {
+                TextComponentStyle.QUOTE_ITALIC -> {
                     //blockQuote
-                    mEditor?.changeToBlockQuote(BlockQuoteStyle.QUOTE_ITALIC)
+                    mEditor?.changeToBlockQuote(TextComponentStyle.QUOTE_ITALIC)
                     invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
-                            formatType = TextFormatType.FORMAT_QUOTE,
-                            textHeadingStyle = TextHeadingStyle.HEADING_NORMAL)
+                            style = TextComponentStyle.FORMAT_NORMAL)
                 }
 
-                BlockQuoteStyle.QUOTE_CENTER_H2 -> {
+                /*TextComponentStyle.QUOTE_CENTER_H2 -> {
                     //blockQuote with H2 style
-                    mEditor?.setHeading(formatType = TextFormatType.FORMAT_HEADER,
-                            headingStyle = TextHeadingStyle.HEADING_H2)
+                    mEditor?.setHeading(formatType = TextComponentStyle.FORMAT_HEADER,
+                            headingStyle = TextComponentStyle.HEADING_H2)
                     invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
-                            formatType = TextFormatType.FORMAT_QUOTE,
-                            textHeadingStyle = TextHeadingStyle.HEADING_H2)
-                }
+                            formatType = TextComponentStyle.FORMAT_QUOTE,
+                            style = TextComponentStyle.HEADING_H2)
+                }*/
             }
         }
 
         viewBinding.bulletBtn.setOnClickListener {
             if (olEnabled) {
                 //switch to normal
-                mEditor?.setHeading(TextFormatType.FORMAT_NORMAL, TextHeadingStyle.HEADING_NORMAL)
-                invalidateControlBarStates(TextModeType.MODE_PLAIN, TextFormatType.FORMAT_LIST, TextHeadingStyle.HEADING_NORMAL)
+                mEditor?.setHeading(TextComponentStyle.FORMAT_NORMAL)
+                invalidateControlBarStates(TextModeType.MODE_PLAIN, TextComponentStyle.FORMAT_NORMAL)
                 olEnabled = false
                 ulEnabled = false
             } else if (ulEnabled) {
                 // switch to ol mode
                 mEditor?.changeToOLMode()
-                invalidateControlBarStates(TextModeType.MODE_OL, TextFormatType.FORMAT_LIST, TextHeadingStyle.HEADING_NORMAL)
+                invalidateControlBarStates(TextModeType.MODE_OL, TextComponentStyle.FORMAT_NORMAL)
                 olEnabled = true
                 ulEnabled = false
             } else if (!olEnabled && !ulEnabled) {
                 // switch to ul mode
                 mEditor?.changeToULMode()
-                invalidateControlBarStates(TextModeType.MODE_UL, TextFormatType.FORMAT_LIST, TextHeadingStyle.HEADING_NORMAL)
+                invalidateControlBarStates(TextModeType.MODE_UL, TextComponentStyle.FORMAT_NORMAL)
                 ulEnabled = true
                 olEnabled = false
             }
@@ -201,18 +193,15 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
     }
 
     private fun onHeadingClick() {
-        currentHeadingStyle = currentHeadingStyle.nextHeadingStyle()
+        currentStyle = currentStyle.nextHeadingStyle()
+
         val formatType: Int
-        if (currentHeadingStyle == TextHeadingStyle.HEADING_NORMAL) {
-            formatType = TextFormatType.FORMAT_NORMAL
-            mEditor?.setHeading(formatType = formatType, headingStyle = TextHeadingStyle.HEADING_NORMAL)
+        if (currentStyle == TextComponentStyle.FORMAT_NORMAL) {
+            mEditor?.setHeading(componentStyle = TextComponentStyle.FORMAT_NORMAL)
         } else {
-            formatType = TextFormatType.FORMAT_HEADER
-            mEditor?.setHeading(formatType = formatType, headingStyle = currentHeadingStyle)
+            mEditor?.setHeading(componentStyle = currentStyle)
         }
-        invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN,
-                formatType = formatType,
-                textHeadingStyle = currentHeadingStyle)
+        invalidateControlBarStates(modeComponentStyle = TextModeType.MODE_PLAIN, style = currentStyle)
     }
 
     private fun enableNormalText(enabled: Boolean) {
@@ -223,44 +212,47 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
         }
     }
 
-    private fun setTextFormatType(@TextFormatType textFormatType: Int, @TextHeadingStyle textHeadingStyle: Int) {
-        enableNewHeading(textFormatType)
-        when (textFormatType) {
-            TextFormatType.FORMAT_NORMAL -> {
-                currentHeadingStyle = TextFormatType.FORMAT_NORMAL
-                viewBinding.headingTextBtn.setTextColor(disabledColor)
-                viewBinding.headingNumberBtn.setTextColor(disabledColor)
-                viewBinding.headingNumberBtn.text = "$textHeadingStyle"
-            }
-
-            TextFormatType.FORMAT_QUOTE -> {
-                enableBlockQuote(true)
-                enableNormalText(false)
+    private fun setTextFormatType(@TextComponentStyle style: Int) {
+        when (style) {
+            TextComponentStyle.FORMAT_NORMAL -> {
                 enableBullet(enable = false, isOrdered = false)
-
+                enableBlockQuote(TextComponentStyle.FORMAT_NORMAL)
+                currentStyle = TextComponentStyle.FORMAT_NORMAL
                 viewBinding.headingTextBtn.setTextColor(disabledColor)
                 viewBinding.headingNumberBtn.setTextColor(disabledColor)
-                viewBinding.headingNumberBtn.text = "$textHeadingStyle"
+                viewBinding.headingNumberBtn.text = "$style"
+                viewBinding.headingBtn.setImageResource(R.drawable.ic_h0)
             }
 
-            TextFormatType.FORMAT_HEADER -> {
-                setTextHeadingStyle(textHeadingStyle = textHeadingStyle)
+            TextComponentStyle.QUOTE_ITALIC -> {
+                enableBlockQuote(style)
                 enableNormalText(false)
                 enableBullet(enable = false, isOrdered = false)
             }
 
-            else -> {
+            in TextComponentStyle.HEADING_H1..TextComponentStyle.HEADING_H5 -> {
+                setTextHeadingStyleNew(style)
+                setTextHeadingStyle(textHeadingStyle = style)
+                enableBullet(enable = false, isOrdered = false)
+                enableBlockQuote(TextComponentStyle.FORMAT_NORMAL)
             }
         }
     }
 
-    private fun enableNewHeading(@TextHeadingStyle textComponentStyle: Int) {
-        when (textComponentStyle) {
-            TextHeadingStyle.HEADING_H1 -> {
+    private fun setTextHeadingStyle(@TextComponentStyle textHeadingStyle: Int) {
+        enableNormalText(false)
+        viewBinding.headingTextBtn.setTextColor(enabledColor)
+        viewBinding.headingNumberBtn.setTextColor(enabledColor)
+        viewBinding.headingNumberBtn.text = "$textHeadingStyle"
+    }
+
+    private fun setTextHeadingStyleNew(@TextComponentStyle style: Int) {
+        when (style) {
+            TextComponentStyle.HEADING_H1 -> {
                 viewBinding.headingBtn.setImageResource(R.drawable.ic_h1)
             }
 
-            TextHeadingStyle.HEADING_H2 -> {
+            TextComponentStyle.HEADING_H2 -> {
                 viewBinding.headingBtn.setImageResource(R.drawable.ic_h2)
             }
 
@@ -290,95 +282,42 @@ class EditorControlBar : FrameLayout, EditorFocusReporter {
         }
     }
 
-    private fun enableBlockQuote(enable: Boolean) {
-        if (enable) {
-            when (blockQuoteStyle) {
-                BlockQuoteStyle.QUOTE_NORMAL -> {
-                    //switch to normal
-                    viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_0)
-                }
-                BlockQuoteStyle.QUOTE_ITALIC -> {
-                    //blockQuote
-                    viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_1)
-                }
-
-                BlockQuoteStyle.QUOTE_CENTER_H2 -> {
-                    //blockQuote with H2 style
-                    viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_2)
-                }
+    private fun enableBlockQuote(@TextComponentStyle style: Int) {
+        when (style) {
+            TextComponentStyle.FORMAT_NORMAL -> {
+                //switch to normal
+                viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_0)
             }
-        } else {
-            blockQuoteStyle = BlockQuoteStyle.QUOTE_NORMAL
-            viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_0)
+            TextComponentStyle.QUOTE_ITALIC -> {
+                //blockQuote
+                viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_1)
+            }
+
+            TextComponentStyle.QUOTE_H2_CENTER -> {
+                //blockQuote with H2 style
+                viewBinding.blockQuoteBtn.setImageResource(R.drawable.ic_quote_2)
+            }
         }
     }
 
     private fun invalidateControlBarStates(@TextModeType modeComponentStyle: Int,
-                                           @TextFormatType formatType: Int,
-                                           @TextHeadingStyle textHeadingStyle: Int) {
+                                           @TextComponentStyle style: Int) {
         when (modeComponentStyle) {
-            TextModeType.MODE_OL -> {
-                enableBlockQuote(false)
-                setTextFormatType(formatType, textHeadingStyle)
+            in TextModeType.MODE_OL downTo TextModeType.MODE_UL -> {
+                enableBlockQuote(TextComponentStyle.FORMAT_NORMAL)
                 enableNormalText(false)
-                enableBullet(enable = true, isOrdered = true)
-            }
-            TextModeType.MODE_UL -> {
-                enableBlockQuote(false)
-                setTextFormatType(formatType, textHeadingStyle)
-                enableNormalText(false)
-                enableBullet(enable = true, isOrdered = false)
+                enableBullet(enable = true, isOrdered = (modeComponentStyle == TextModeType.MODE_OL))
             }
 
             TextModeType.MODE_PLAIN -> {
-                setTextFormatType(formatType, textHeadingStyle)
+                setTextFormatType(style)
             }
         }
     }
 
-    private fun setTextHeadingStyle(@TextHeadingStyle textHeadingStyle: Int) {
-        when (textHeadingStyle) {
-            TextHeadingStyle.HEADING_NORMAL -> {
-                enableBlockQuote(false)
-                enableNormalText(true)
-                enableBullet(enable = false, isOrdered = false)
-            }
-            TextHeadingStyle.HEADING_H1 -> {
-                enableBlockQuote(false)
-                enableNormalText(false)
-                enableBullet(enable = false, isOrdered = false)
-            }
-            TextHeadingStyle.HEADING_H2 -> {
-                enableBlockQuote(false)
-                enableNormalText(false)
-                enableBullet(enable = false, isOrdered = false)
-            }
-            TextHeadingStyle.HEADING_H3 -> {
-                enableBlockQuote(false)
-                enableNormalText(false)
-                enableBullet(enable = false, isOrdered = false)
-            }
-            TextHeadingStyle.HEADING_H4 -> {
-                enableBlockQuote(false)
-                enableNormalText(false)
-                enableBullet(enable = false, isOrdered = false)
-            }
-            TextHeadingStyle.HEADING_H5 -> {
-                enableBlockQuote(false)
-                enableNormalText(false)
-                enableBullet(enable = false, isOrdered = false)
-            }
-        }
-
-        viewBinding.headingTextBtn.setTextColor(enabledColor)
-        viewBinding.headingNumberBtn.setTextColor(enabledColor)
-        viewBinding.headingNumberBtn.text = "$textHeadingStyle"
-    }
-
-    override fun onFocusedViewHas(mode: Int, textFormatType: Int, textComponentStyle: Int) {
+    override fun onFocusedViewHas(mode: Int, textComponentStyle: Int) {
         invalidateControlBarStates(modeComponentStyle = mode,
-                formatType = textFormatType,
-                textHeadingStyle = textComponentStyle)
+                style = textComponentStyle)
     }
 
     fun setEditorControlListener(editorControlListener: EditorControlListener?) {

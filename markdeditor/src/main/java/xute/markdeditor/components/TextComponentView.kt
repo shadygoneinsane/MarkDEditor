@@ -12,7 +12,7 @@ import xute.markdeditor.models.ComponentTag
 import xute.markdeditor.models.TextComponentModel
 import xute.markdeditor.styles.TextModeType
 
-class TextComponentItem : FrameLayout {
+class TextComponentView : FrameLayout {
     private val indicatorTv: TextView by lazy { findViewById<TextView>(R.id.indicator) }
     val inputBox: EditText by lazy { findViewById<EditText>(R.id.text) }
     private var mEditorMode = 0
@@ -67,17 +67,10 @@ class TextComponentItem : FrameLayout {
     }
 
     //check heading
-    fun getTextFormatType(): Int {
+    fun getTextComponentStyle(): Int {
         val componentTag = tag as ComponentTag
         //check heading
-        return (componentTag.component as TextComponentModel).textFormatType
-    }
-
-    //check heading
-    fun getTextHeadingStyle(): Int {
-        val componentTag = tag as ComponentTag
-        //check heading
-        return (componentTag.component as TextComponentModel).textHeadingStyle
+        return (componentTag.component as TextComponentModel).textStyle
     }
 
     fun setIndicator(bullet: String?) {
