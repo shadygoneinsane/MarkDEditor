@@ -9,5 +9,5 @@ import retrofit2.http.Part;
 public interface Api {
   @Multipart
   @POST("upload")
-  Call<FileUploadReponse> uploadFile(@Part MultipartBody.Part file);
+  Call<FileUploadResponse> uploadFile(@Part MultipartBody.Part file);
 }

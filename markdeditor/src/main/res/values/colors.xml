@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="disabled">#3e3e3e</color>
+    <color name="enabled">#0994cf</color>
+
+    <color name="dark_background">#2b2b2a</color> <!--Color background (EditorControlBar)-->
+
+    <color name="white">#FFFFFF</color>
+</resources>

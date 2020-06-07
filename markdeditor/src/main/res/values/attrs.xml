@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="EditorControlBar">
+        <attr name="enabledColor" format="color" />
+        <attr name="disabledColor" format="color" />
+        <attr name="backgroundColor" format="color" />
+
+        <!--Ideally heading won't go after this constant -->
+        <attr name="maxHeading" format="enum">
+            <enum name="H1" value="1" />
+            <enum name="H2" value="2" />
+            <enum name="H3" value="3" />
+            <enum name="H4" value="4" />
+            <enum name="H5" value="5" />
+        </attr>
+    </declare-styleable>
+
+</resources>

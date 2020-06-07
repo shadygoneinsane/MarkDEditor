@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-   <ScrollView
-       android:background="#ffffff"
-       android:layout_above="@+id/controlBar"
-       android:layout_width="match_parent"
-       android:layout_height="match_parent">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/controlBar"
+        android:background="#ffffff">
 
-      <xute.markdeditor.MarkDEditor
-          android:id="@+id/mdEditor"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent" />
+        <xute.markdeditor.MarkDEditor
+            android:id="@+id/mdEditor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-   </ScrollView>
+    </ScrollView>
 
-   <xute.markdeditor.EditorControlBar
-       android:id="@+id/controlBar"
-       android:layout_alignParentBottom="true"
-       android:layout_width="match_parent"
-       android:layout_height="48dp" />
+    <xute.markdeditor.controller.EditorControlBar
+        android:id="@+id/controlBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        app:maxHeading="H2" />
 
-   <Button
-       android:onClick="printStack"
-       android:layout_marginBottom="56dp"
-       android:layout_marginRight="8dp"
-       android:text="Get Draft"
-       android:layout_alignParentBottom="true"
-       android:layout_alignParentRight="true"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="56dp"
+        android:onClick="printStack"
+        android:text="Get Draft" />
 
 </RelativeLayout>

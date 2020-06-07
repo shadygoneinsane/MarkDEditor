@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
-import xute.markdeditor.datatype.DraftDataItemModel;
 import xute.markdeditor.utilities.RenderingUtils;
 
 /**
