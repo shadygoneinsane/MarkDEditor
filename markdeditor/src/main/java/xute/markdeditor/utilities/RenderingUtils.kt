@@ -93,6 +93,6 @@ class RenderingUtils {
      *
      * @return insert index.
      */
-    private fun insertIndex(): Int = markDEditor?.childCount!!.apply { Log.d("vikesh", "$this") }
+    private fun insertIndex(): Int = markDEditor?.childCount!!
 
 }

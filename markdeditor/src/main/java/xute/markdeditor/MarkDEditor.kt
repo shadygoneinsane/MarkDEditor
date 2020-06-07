@@ -2,7 +2,6 @@ package xute.markdeditor
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.annotation.Nullable
@@ -25,9 +24,9 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     private var _activeView: View? = null
     private var mContext: Context? = null
     private var draftManager: DraftManager? = null
-    private var __textComponent: TextComponent? = null
-    private var __imageComponent: ImageComponent? = null
-    private var __horizontalComponent: HorizontalDividerComponent? = null
+    private var currentTextComponent: TextComponent? = null
+    private var currentImageComponent: ImageComponent? = null
+    private var currentHorizontalComponent: HorizontalDividerComponent? = null
 
     private lateinit var markDownConverter: MarkDownConverter
     private var serverToken: String? = null
@@ -51,9 +50,9 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         bulletGroupModels = ArrayList()
         markDownConverter = MarkDownConverter()
         setCurrentInputMode(TextModeType.MODE_PLAIN)
-        __textComponent = TextComponent(context, this)
-        __imageComponent = ImageComponent(context)
-        __horizontalComponent = HorizontalDividerComponent(context)
+        currentTextComponent = TextComponent(context, this)
+        currentImageComponent = ImageComponent(context)
+        currentHorizontalComponent = HorizontalDividerComponent(context)
     }
 
     /**
@@ -91,7 +90,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * @param insertIndex at which addition of new [TextComponent] take place.
      */
     public fun addTextComponent(insertIndex: Int, @Nullable content: String? = null) {
-        __textComponent?.let { textComponent ->
+        currentTextComponent?.let { textComponent ->
             //setting default mode as plain
             val textComponentItem = textComponent.newTextComponent(currentInputMode)
             //prepare tag
@@ -142,7 +141,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
                     textComponentModel.textStyle = componentStyle
                 }
             }
-            __textComponent?.updateComponent(textComponentItem)
+            currentTextComponent?.updateComponent(textComponentItem)
         }
     }
 
@@ -169,13 +168,11 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * @param startIndex index after which re-computation will be done.
      */
     private fun reComputeTagsAfter(startIndex: Int) {
-        Log.d("vikesh", "Recomputing index")
         for (i in startIndex until childCount) {
             val child: View = getChildAt(i)
             val componentTag = child.tag as ComponentTag
             componentTag.componentIndex = i
             child.tag = componentTag
-            Log.d("vikesh", "componentTag $componentTag")
         }
     }
 
@@ -225,7 +222,6 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         if (selfIndex == 0) return
         val viewToBeRemoved = getChildAt(selfIndex)
         val previousView = getChildAt(selfIndex - 1)
-        val content = (viewToBeRemoved as TextComponentView).inputBox.text.toString()
         if (previousView is HorizontalDividerComponentItem) {
             //remove previous view.
             removeViewAt(selfIndex - 1)
@@ -236,6 +232,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
         } else if (previousView is TextComponentView) {
             removeViewAt(selfIndex)
             val contentLen = previousView.inputBox.text.toString().length
+            val content = (viewToBeRemoved as TextComponentView).inputBox.text.toString()
             previousView.inputBox.append(String.format("%s", content))
             setFocus(previousView, contentLen)
         } else if (previousView is ImageComponentItem) {
@@ -312,7 +309,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
             val componentTag = textComponentItem.tag as ComponentTag
             (componentTag.component as? TextComponentModel)?.textStyle = componentStyle
 
-            __textComponent?.updateComponent(textComponentItem)
+            currentTextComponent?.updateComponent(textComponentItem)
         }
         refreshViewOrder()
     }
@@ -326,7 +323,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
             textComponentItem.setMode(setCurrentInputMode(TextModeType.MODE_OL))
             val componentTag = textComponentItem.tag as ComponentTag
             (componentTag.component as? TextComponentModel)?.textStyle = TextComponentStyle.FORMAT_NORMAL
-            __textComponent?.updateComponent(_activeView as TextComponentView)
+            currentTextComponent?.updateComponent(_activeView as TextComponentView)
         }
         refreshViewOrder()
     }
@@ -341,7 +338,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
             val componentTag = _activeView?.tag as ComponentTag
             (componentTag.component as TextComponentModel?)?.textStyle = TextComponentStyle.FORMAT_NORMAL
 
-            __textComponent?.updateComponent(textComponentItem)
+            currentTextComponent?.updateComponent(textComponentItem)
         }
         refreshViewOrder()
     }
@@ -357,7 +354,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      */
     fun insertImage(filePath: String) {
         var insertIndex = checkInvalidateAndCalculateInsertIndex()
-        val imageComponentItem = __imageComponent?.getNewImageComponentItem(this)
+        val imageComponentItem = currentImageComponent?.getNewImageComponentItem(this)
         //prepare tag
         val imageComponentModel = ImageComponentModel()
         val imageComponentTag = getNewComponentTag(insertIndex)
@@ -413,7 +410,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * @param filePath uri of image to be inserted.
      */
     fun insertImage(insertIndex: Int, filePath: String?, uploaded: Boolean, caption: String?) {
-        val imageComponentItem = __imageComponent!!.getNewImageComponentItem(this)
+        val imageComponentItem = currentImageComponent!!.getNewImageComponentItem(this)
         //prepare tag
         val imageComponentModel = ImageComponentModel()
         val imageComponentTag = getNewComponentTag(insertIndex)
@@ -429,8 +426,8 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * Adds new text components based on passed parameter.
      */
     fun insertHorizontalDivider(insertNewTextComponentAfterThis: Boolean? = null) {
-        var insertIndex = nextIndex
-        __horizontalComponent?.let { horizontalDividerComponent ->
+        var insertIndex = nextIndex()
+        currentHorizontalComponent?.let { horizontalDividerComponent ->
             val horizontalDividerComponentItem = horizontalDividerComponent.newHorizontalComponentItem()
             val hrTag = getNewComponentTag(insertIndex)
             horizontalDividerComponentItem.tag = hrTag
@@ -456,11 +453,10 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     /**
      * @return index next to focused view.
      */
-    private val nextIndex: Int
-        get() {
-            val tag = _activeView?.tag as ComponentTag
-            return ++tag.componentIndex
-        }
+    private fun nextIndex(): Int {
+        val tag = _activeView?.tag as ComponentTag
+        return tag.componentIndex + 1
+    }
 
     override fun onImageRemove(removeIndex: Int) {
         if (removeIndex == 0) {
