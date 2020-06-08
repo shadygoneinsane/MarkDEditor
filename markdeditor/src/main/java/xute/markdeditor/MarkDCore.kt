@@ -91,7 +91,7 @@ open class MarkDCore(context: Context?, attrs: AttributeSet?) : LinearLayout(con
         var ot: Int
         var si: Int
         var ei: Int
-        var _tempChild: TextComponentView
+        var tempChild: TextComponentView
         //loop through each group
         for (i in bulletGroupModels.indices) {
             ot = bulletGroupModels[i].orderType
@@ -102,9 +102,9 @@ open class MarkDCore(context: Context?, attrs: AttributeSet?) : LinearLayout(con
                 var ci = 1
                 for (j in si..ei) {
                     try {
-                        _tempChild = getChildAt(j) as TextComponentView
-                        _tempChild.setMode(TextModeType.MODE_OL)
-                        _tempChild.setIndicator("$ci.")
+                        tempChild = getChildAt(j) as TextComponentView
+                        tempChild.setMode(TextModeType.MODE_OL)
+                        tempChild.setIndicator("$ci.")
                         ci++
                     } catch (e: Exception) {
                         Log.d("EditorCore", "pos $j")

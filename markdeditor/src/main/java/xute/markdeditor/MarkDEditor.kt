@@ -89,7 +89,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * @param content to be added if its not null
      * @param insertIndex at which addition of new [TextComponent] take place.
      */
-    public fun addTextComponent(insertIndex: Int, @Nullable content: String? = null) {
+    fun addTextComponent(insertIndex: Int, @Nullable content: String? = null) {
         currentTextComponent?.let { textComponent ->
             //setting default mode as plain
             val textComponentItem = textComponent.newTextComponent(currentInputMode)
@@ -122,27 +122,21 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * @param componentStyle number to be set
      */
     fun setHeading(@TextComponentStyle componentStyle: Int) {
-        setDataInView(TextModeType.MODE_PLAIN, componentStyle)
-        refreshViewOrder()
-    }
-
-    fun setDataInView(@TextModeType textModeType: Int,
-                      @TextComponentStyle componentStyle: Int) {
-        setCurrentInputMode(textModeType)
-        (_activeView as? TextComponentView)?.let { textComponentItem ->
+        (_activeView as? TextComponentView)?.let { textComponentView ->
             //set mode as plain since we are defining it as a heading format type
-            textComponentItem.setMode(textModeType)
+            textComponentView.setMode(setCurrentInputMode(TextModeType.MODE_PLAIN))
 
             //set tag information
-            (textComponentItem.tag as? ComponentTag)?.let { componentTag ->
+            (textComponentView.tag as? ComponentTag)?.let { componentTag ->
                 (componentTag.component as? TextComponentModel)?.let { textComponentModel ->
 
                     //set data in model
                     textComponentModel.textStyle = componentStyle
                 }
             }
-            currentTextComponent?.updateComponent(textComponentItem)
+            currentTextComponent?.updateComponent(textComponentView)
         }
+        refreshViewOrder()
     }
 
     fun setCurrentInputMode(@TextModeType modeType: Int): Int {
@@ -155,10 +149,10 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      */
     private fun setFocus(view: View) {
         _activeView = view
-        (_activeView as? TextComponentView)?.let { textComponentItem ->
-            setCurrentInputMode(textComponentItem.getMode())
+        (_activeView as? TextComponentView)?.let { textComponentView ->
+            setCurrentInputMode(textComponentView.getMode())
             (view as? TextComponentView)?.inputBox?.requestFocus()
-            reportStylesOfFocusedView(textComponentItem)
+            reportStylesOfFocusedView(textComponentView)
         }
     }
 
@@ -221,23 +215,26 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
     override fun onRemoveTextComponent(selfIndex: Int) {
         if (selfIndex == 0) return
         val viewToBeRemoved = getChildAt(selfIndex)
-        val previousView = getChildAt(selfIndex - 1)
-        if (previousView is HorizontalDividerComponentItem) {
-            //remove previous view.
-            removeViewAt(selfIndex - 1)
-            reComputeTagsAfter(selfIndex - 1)
-            //focus on latest text component
-            val lastTextComponent = getLatestTextComponentIndexBefore(selfIndex - 1)
-            setFocus(getChildAt(lastTextComponent))
-        } else if (previousView is TextComponentView) {
-            removeViewAt(selfIndex)
-            val contentLen = previousView.inputBox.text.toString().length
-            val content = (viewToBeRemoved as TextComponentView).inputBox.text.toString()
-            previousView.inputBox.append(String.format("%s", content))
-            setFocus(previousView, contentLen)
-        } else if (previousView is ImageComponentItem) {
-            setActiveView(previousView)
-            previousView.setFocus()
+        when (val previousView = getChildAt(selfIndex - 1)) {
+            is HorizontalDividerComponentItem -> {
+                //remove previous view.
+                removeViewAt(selfIndex - 1)
+                reComputeTagsAfter(selfIndex - 1)
+                //focus on latest text component
+                val lastTextComponent = getLatestTextComponentIndexBefore(selfIndex - 1)
+                setFocus(getChildAt(lastTextComponent))
+            }
+            is TextComponentView -> {
+                removeViewAt(selfIndex)
+                val contentLen = previousView.inputBox.text.toString().length
+                val content = (viewToBeRemoved as TextComponentView).inputBox.text.toString()
+                previousView.inputBox.append(String.format("%s", content))
+                setFocus(previousView, contentLen)
+            }
+            is ImageComponentItem -> {
+                setActiveView(previousView)
+                previousView.setFocus()
+            }
         }
         reComputeTagsAfter(selfIndex)
         refreshViewOrder()
@@ -251,7 +248,7 @@ class MarkDEditor(context: Context, attrs: AttributeSet?) : MarkDCore(context, a
      * @return index of LatestTextComponent before startIndex.
      */
     private fun getLatestTextComponentIndexBefore(starIndex: Int): Int {
-        var view: View? = null
+        var view: View
         for (i in starIndex downTo 0) {
             view = getChildAt(i)
             if (view is TextComponentView) return i

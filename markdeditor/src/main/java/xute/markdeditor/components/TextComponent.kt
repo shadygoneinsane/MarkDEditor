@@ -29,19 +29,19 @@ class TextComponent(private val mContext: Context, private val textComponentCall
      * @return new instance of TextComponent.
      */
     fun newTextComponent(mode: Int): TextComponentView {
-        val customInput = TextComponentView(mContext, mode)
-        val et = customInput.inputBox
+        val customInputView = TextComponentView(mContext, mode)
+        val et = customInputView.inputBox
         et.setImeActionLabel("Enter", KeyEvent.KEYCODE_ENTER)
         et.setOnKeyListener(View.OnKeyListener { view, keyCode, keyEvent ->
             if (keyEvent.action != KeyEvent.ACTION_DOWN) return@OnKeyListener true
             if (keyCode == KeyEvent.KEYCODE_DEL) {
-                textComponentCallback?.onRemoveTextComponent((customInput.tag as ComponentTag).componentIndex)
+                textComponentCallback?.onRemoveTextComponent((customInputView.tag as ComponentTag).componentIndex)
             }
             false
         })
         et.onFocusChangeListener = OnFocusChangeListener { view, inFocus ->
             if (inFocus) {
-                textComponentCallback?.onFocusGained(customInput)
+                textComponentCallback?.onFocusGained(customInputView)
             }
         }
         et.addTextChangedListener(object : TextWatcher {
@@ -62,9 +62,19 @@ class TextComponent(private val mContext: Context, private val textComponentCall
                         spaceExist = false
                     }
                     val sequenceToCheckNewLineCharacter =
-                            if (clen > 1) charSequence.subSequence(clen - 2, clen).toString()
-                            else charSequence.subSequence(clen - 1, clen).toString()
-                    val noReadableCharactersAfterCursor = sequenceToCheckNewLineCharacter.trim { it <= ' ' }.isEmpty()
+                            /*if (clen > 1) charSequence.subSequence(clen - 2, clen).toString()
+                            else*/ charSequence.subSequence(clen - 1, clen).toString()
+
+                    /*var shouldInsertNext = false
+                    (customInputView.tag as? ComponentTag)?.let { componentTag ->
+                        (componentTag.component as? TextComponentModel)?.let { textComponentModel ->
+                            //set data in model
+                            if (textComponentModel.textStyle in TextComponentStyle.FORMAT_NORMAL..TextComponentStyle.QUOTE_H3_LIGHT)
+                                shouldInsertNext = true
+                        }
+                    }*/
+
+                    val noReadableCharactersAfterCursor = sequenceToCheckNewLineCharacter.trim { it <= ' ' }.isEmpty() /*|| shouldInsertNext*/
                     //if last characters are [AB\n<space>] or [AB\n] then we insert new TextComponent
                     //else if last characters are [AB\nC] ignore the insert.
                     if (sequenceToCheckNewLineCharacter.contains("\n") && noReadableCharactersAfterCursor) {
@@ -74,14 +84,14 @@ class TextComponent(private val mContext: Context, private val textComponentCall
                         //but we need to leave 1 character from end.
                         val newSequence = if (sequenceToCheckNewLineCharacter.length > 1) charSequence.subSequence(0, clen - 2) else charSequence.subSequence(0, clen - 1)
                         et.setText(newSequence)
-                        textComponentCallback?.onInsertTextComponent((customInput.tag as ComponentTag).componentIndex)
+                        textComponentCallback?.onInsertTextComponent((customInputView.tag as ComponentTag).componentIndex)
                     }
                 }
             }
 
             override fun afterTextChanged(editable: Editable) {}
         })
-        return customInput
+        return customInputView
     }
 
     private fun isSpaceCharacter(ch: Char): Boolean {

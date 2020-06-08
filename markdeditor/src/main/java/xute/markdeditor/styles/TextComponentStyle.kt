@@ -34,7 +34,7 @@ annotation class TextComponentStyle {
     }
 }
 
-fun @TextComponentStyle Int.nextHeadingStyle(): @TextComponentStyle Int {
+fun @TextComponentStyle Int.maxHeadingStyle(): @TextComponentStyle Int {
     return when (this) {
         TextComponentStyle.FORMAT_NORMAL -> TextComponentStyle.HEADING_H1
         TextComponentStyle.HEADING_H1 -> TextComponentStyle.HEADING_H2
@@ -42,6 +42,16 @@ fun @TextComponentStyle Int.nextHeadingStyle(): @TextComponentStyle Int {
         TextComponentStyle.HEADING_H3 -> TextComponentStyle.HEADING_H4
         TextComponentStyle.HEADING_H4 -> TextComponentStyle.HEADING_H5
         TextComponentStyle.HEADING_H5 -> TextComponentStyle.FORMAT_NORMAL
+
+        else -> TextComponentStyle.HEADING_H1
+    }
+}
+
+fun @TextComponentStyle Int.minHeadingStyle(): @TextComponentStyle Int {
+    return when (this) {
+        TextComponentStyle.FORMAT_NORMAL -> TextComponentStyle.HEADING_H1
+        TextComponentStyle.HEADING_H1 -> TextComponentStyle.HEADING_H4
+        TextComponentStyle.HEADING_H4 -> TextComponentStyle.FORMAT_NORMAL
 
         else -> TextComponentStyle.HEADING_H1
     }
