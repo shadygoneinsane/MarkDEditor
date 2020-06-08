@@ -8,8 +8,8 @@
 
         <!--Ideally heading won't go after this constant -->
         <attr name="headingStyle" format="enum">
-            <enum name="H3" value="1" />
-            <enum name="H5" value="2" />
+            <enum name="H2" value="2" />
+            <enum name="H5" value="5" />
         </attr>
     </declare-styleable>
 
